@@ -1,0 +1,26 @@
+{
+    "firestore": {
+        "database": "(default)",
+        "location": "eur3",
+        "rules": "firestore.rules",
+        "indexes": "firestore.indexes.json"
+    },
+    "apphosting": {
+        "backendId": "anniv-enzo",
+        "rootDir": "/",
+        "ignore": [
+            "node_modules",
+            ".git",
+            "firebase-debug.log",
+            "firebase-debug.*.log",
+            "functions"
+        ]
+    },
+    "hosting": {
+        "site": "anniv-enzo-71d2b",
+        "public": "public"
+    },
+    "storage": {
+        "rules": "storage.rules"
+    }
+}
