@@ -1,6 +1,5 @@
-import { GalleryPage } from "@/components/gallery/gallery-page";
-import { GALLERY_CONFIG } from "@/lib/gallery-config";
+import { HomePage } from "@/components/home/home-page";
 
 export default function Home() {
-  return <GalleryPage config={GALLERY_CONFIG} showEasterEgg />;
+  return <HomePage />;
 }

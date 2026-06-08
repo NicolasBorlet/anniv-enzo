@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, Images, RefreshCw, Sparkles } from "lucide-react";
+import { ArrowLeft, Camera, Images, RefreshCw, Sparkles } from "lucide-react";
 import { EasterEggListener } from "@/components/easter-egg/easter-egg-listener";
 import { FirebaseSetupNotice } from "@/components/gallery/firebase-setup-notice";
 import { GallerySkeleton } from "@/components/gallery/gallery-skeleton";
@@ -87,6 +87,11 @@ export function GalleryPage({
                       className="h-5 w-5 shrink-0 text-primary"
                       aria-hidden="true"
                     />
+                  ) : config.folder === "guest" ? (
+                    <Camera
+                      className="h-5 w-5 shrink-0 text-primary"
+                      aria-hidden="true"
+                    />
                   ) : (
                     <Images
                       className="h-5 w-5 shrink-0 text-primary"
@@ -129,7 +134,14 @@ export function GalleryPage({
 
           {configured && config.allowUpload && (
             <section className="mb-10">
-              <UploadZone onUpload={handleUpload} />
+              <UploadZone
+                onUpload={handleUpload}
+                hint={
+                  config.folder === "guest"
+                    ? "Vos photos seront ajoutées à la collection des invités."
+                    : undefined
+                }
+              />
             </section>
           )}
 
@@ -137,7 +149,11 @@ export function GalleryPage({
             <div className="mb-6 flex items-end justify-between gap-4">
               <div>
                 <h2 className="text-lg font-semibold text-foreground">
-                  {config.folder === "special" ? "Trésors cachés" : "Galerie"}
+                  {config.folder === "special"
+                    ? "Trésors cachés"
+                    : config.folder === "guest"
+                      ? "Photos des invités"
+                      : "Galerie"}
                 </h2>
                 {!isLoading && configured && (
                   <p className="mt-1 text-sm text-muted-foreground">

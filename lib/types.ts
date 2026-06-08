@@ -1,4 +1,4 @@
-export type StorageFolder = "gallery" | "special";
+export type StorageFolder = "gallery" | "special" | "guest";
 
 export type GalleryImage = {
   id: string;

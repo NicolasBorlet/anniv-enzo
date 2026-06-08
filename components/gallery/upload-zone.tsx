@@ -6,11 +6,16 @@ import { Camera, Loader2, Upload } from "lucide-react";
 type UploadZoneProps = {
   onUpload: (files: File[]) => Promise<void>;
   disabled?: boolean;
+  hint?: string;
 };
 
 const ACCEPT = "image/jpeg,image/png,image/gif,image/webp,image/heic,image/heif";
 
-export function UploadZone({ onUpload, disabled = false }: UploadZoneProps) {
+export function UploadZone({
+  onUpload,
+  disabled = false,
+  hint = "Vos photos seront visibles par tous les visiteurs du site.",
+}: UploadZoneProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -126,7 +131,7 @@ export function UploadZone({ onUpload, disabled = false }: UploadZoneProps) {
 
       <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
         <Camera className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-        Vos photos seront visibles par tous les visiteurs du site.
+        {hint}
       </p>
     </section>
   );

@@ -4,14 +4,15 @@ Application Next.js pour afficher et partager des photos d'anniversaire via Fire
 
 ## Fonctionnalités
 
-- **Galerie publique** — affichage en grille responsive avec lightbox
-- **Upload sans compte** — glisser-déposer ou sélection de fichiers
-- **Easter egg** — accès à une page secrète `/vault` avec des images spéciales
+- **Page d'accueil** — choix entre consulter les photos publiques ou partager une photo
+- **Galerie publique** (`/photos`) — photos officielles de la soirée, en lecture seule
+- **Upload invités** (`/upload`) — les visiteurs envoient leurs propres clichés dans un dossier séparé
+- **Coffre secret** (`/vault`) — photos privées, accessibles via un easter egg
 - **Interface soignée** — typographie Bebas Neue + Source Sans 3, mode clair/sombre
 
 ## Easter egg
 
-Depuis la page d'accueil, deux façons d'accéder au coffre secret :
+Depuis la page des photos publiques (`/photos`), deux façons d'accéder au coffre secret :
 
 1. **Code Konami** : ↑ ↑ ↓ ↓ ← → ← → B A
 2. **Mot secret** : tapez `enzo` au clavier (hors champs de saisie)
@@ -46,12 +47,13 @@ NEXT_PUBLIC_FIREBASE_APP_ID=...
 
 ### 3. Structure Storage
 
-Créez deux dossiers à la racine du bucket :
+Créez trois dossiers à la racine du bucket :
 
-| Dossier   | Usage                                      |
-|-----------|--------------------------------------------|
-| `gallery/` | Photos publiques (visibles + uploadables) |
-| `special/` | Photos secrètes (page easter egg)         |
+| Dossier    | Usage                                              |
+|------------|----------------------------------------------------|
+| `gallery/` | Photos publiques officielles (lecture seule)       |
+| `guest/`   | Photos envoyées par les invités (lecture + écriture) |
+| `special/` | Photos privées (page easter egg, lecture seule)    |
 
 ### 4. Règles de sécurité Storage
 
@@ -62,6 +64,10 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /gallery/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /guest/{allPaths=**} {
       allow read, write: if true;
     }
     match /special/{allPaths=**} {
@@ -74,9 +80,9 @@ service firebase.storage {
 
 > **Note :** Ces règles sont ouvertes pour un événement privé entre amis. Pour un usage plus strict, limitez les uploads par taille, type MIME, ou ajoutez Firebase App Check.
 
-### 5. Ajouter des images spéciales
+### 5. Ajouter des photos officielles et privées
 
-Uploadez manuellement des fichiers dans le dossier `special/` via la console Firebase (Storage > Parcourir).
+Uploadez manuellement les photos officielles dans `gallery/` et les photos privées dans `special/` via la console Firebase (Storage > Parcourir). Les invités envoient leurs photos via la page `/upload`, stockées dans `guest/`.
 
 ## Démarrage
 

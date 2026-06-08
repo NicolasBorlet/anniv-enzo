@@ -9,6 +9,6 @@ export const metadata: Metadata = {
 
 export default function VaultPage() {
   return (
-    <GalleryPage config={VAULT_CONFIG} backHref="/" />
+    <GalleryPage config={VAULT_CONFIG} backHref="/photos" />
   );
 }
