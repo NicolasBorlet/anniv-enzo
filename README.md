@@ -5,9 +5,11 @@ Application Next.js pour afficher et partager des photos d'anniversaire via Fire
 ## Fonctionnalités
 
 - **Page d'accueil** — choix entre consulter les photos publiques ou partager une photo
-- **Galerie publique** (`/photos`) — photos officielles de la soirée, en lecture seule
-- **Upload invités** (`/upload`) — les visiteurs envoient leurs propres clichés dans un dossier séparé
+- **Galerie publique** (`/photos`) — photos officielles de la soirée
+- **Partage invités** (`/upload`) — les visiteurs envoient et consultent leurs photos
 - **Coffre secret** (`/vault`) — photos privées, accessibles via un easter egg
+- **Téléchargement** — chaque photo individuellement ou toutes en une archive ZIP
+- **Super admin** (`/login`) — upload dans la galerie officielle, suppression partout, lien rapide vers les photos invités
 - **Interface soignée** — typographie Bebas Neue + Source Sans 3, mode clair/sombre
 
 ## Easter egg
@@ -18,6 +20,39 @@ Depuis la page des photos publiques (`/photos`), deux façons d'accéder au coff
 2. **Mot secret** : tapez `enzo` au clavier (hors champs de saisie)
 
 La page `/vault` affiche les images du dossier `special/` dans Firebase Storage (lecture seule côté app).
+
+## Téléchargement des photos
+
+Sur chaque galerie (`/photos`, `/upload`, `/vault`) :
+
+- **Photo individuelle** — bouton de téléchargement au survol de la vignette, ou dans la visionneuse plein écran
+- **Toutes les photos** — bouton « Tout télécharger » dans l'en-tête (archive ZIP si plusieurs photos)
+
+## Super admin
+
+L'interface reste identique pour les invités. Seuls les super admins connectés sur `/login` voient en plus la **zone d'upload** sur `/photos`, le lien **Photos invités** et une **poubelle rouge** pour supprimer.
+
+### Connexion admin
+
+1. Activez **Authentication > Email/Mot de passe** dans la [Console Firebase](https://console.firebase.google.com)
+2. Créez les comptes admin (Authentication > Users > Add user)
+3. Renseignez leurs emails dans `.env.local` :
+
+```env
+NEXT_PUBLIC_SUPER_ADMIN_EMAILS=admin@example.com,autre@example.com
+```
+
+4. Ajoutez la clé de compte de service (requise pour la suppression côté serveur) :
+
+```env
+FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
+```
+
+> Console Firebase > Paramètres du projet > Comptes de service > Générer une nouvelle clé privée. Collez le JSON sur une seule ligne.
+
+### Connexion admin
+
+Rendez-vous sur **`/login`** pour vous connecter en super admin.
 
 ## Configuration Firebase
 
@@ -82,7 +117,7 @@ service firebase.storage {
 
 ### 5. Ajouter des photos officielles et privées
 
-Uploadez manuellement les photos officielles dans `gallery/` et les photos privées dans `special/` via la console Firebase (Storage > Parcourir). Les invités envoient leurs photos via la page `/upload`, stockées dans `guest/`.
+Uploadez les photos privées dans `special/` via la console Firebase (Storage > Parcourir). Les super admins ajoutent les photos officielles via la zone d'upload sur `/photos` (après connexion sur `/login`).
 
 ## Démarrage
 

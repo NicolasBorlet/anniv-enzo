@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Bebas_Neue, Source_Sans_3 } from "next/font/google";
+import { AuthProvider } from "@/components/auth/auth-provider";
 import "./globals.css";
 
 const bebasNeue = Bebas_Neue({
@@ -46,7 +47,7 @@ export default function RootLayout({
         >
           Aller au contenu principal
         </a>
-        {children}
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

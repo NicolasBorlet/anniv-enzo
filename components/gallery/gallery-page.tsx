@@ -2,14 +2,25 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, Camera, Images, RefreshCw, Sparkles } from "lucide-react";
+import {
+  ArrowLeft,
+  Camera,
+  Download,
+  Images,
+  Loader2,
+  RefreshCw,
+  Sparkles,
+  Users,
+} from "lucide-react";
+import { useAuth } from "@/components/auth/auth-provider";
 import { EasterEggListener } from "@/components/easter-egg/easter-egg-listener";
 import { FirebaseSetupNotice } from "@/components/gallery/firebase-setup-notice";
 import { GallerySkeleton } from "@/components/gallery/gallery-skeleton";
 import { ImageGrid } from "@/components/gallery/image-grid";
 import { UploadZone } from "@/components/gallery/upload-zone";
+import { downloadAllImages } from "@/lib/download";
 import { isFirebaseConfigured } from "@/lib/firebase/client";
-import { listImages, uploadImage } from "@/lib/firebase/storage";
+import { deleteImage, listImages, uploadImage } from "@/lib/firebase/storage";
 import type { GalleryConfig, GalleryImage } from "@/lib/types";
 
 type GalleryPageProps = {
@@ -23,11 +34,18 @@ export function GalleryPage({
   showEasterEgg = false,
   backHref,
 }: GalleryPageProps) {
+  const { isSuperAdmin } = useAuth();
+  const configured = isFirebaseConfigured();
+  const canUpload =
+    configured &&
+    config.allowUpload &&
+    (!config.adminOnlyUpload || isSuperAdmin);
   const [images, setImages] = useState<GalleryImage[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(configured);
   const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const configured = isFirebaseConfigured();
+  const [isDownloadingAll, setIsDownloadingAll] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loadImages = useCallback(async () => {
     if (!configured) {
@@ -48,8 +66,35 @@ export function GalleryPage({
   }, [configured, config.folder]);
 
   useEffect(() => {
-    void loadImages();
-  }, [loadImages]);
+    if (!configured) return;
+
+    let cancelled = false;
+
+    async function fetchImages() {
+      try {
+        const result = await listImages(config.folder);
+        if (!cancelled) {
+          setError(null);
+          setImages(result);
+        }
+      } catch {
+        if (!cancelled) {
+          setError("Impossible de charger les photos. Vérifiez votre connexion.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoading(false);
+          setIsRefreshing(false);
+        }
+      }
+    }
+
+    void fetchImages();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [configured, config.folder]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -60,6 +105,35 @@ export function GalleryPage({
     for (const file of files) {
       const uploaded = await uploadImage(config.folder, file);
       setImages((current) => [uploaded, ...current]);
+    }
+  };
+
+  const handleDownloadAll = async () => {
+    if (images.length === 0) return;
+
+    setIsDownloadingAll(true);
+    setError(null);
+
+    try {
+      await downloadAllImages(images, config.title.toLowerCase().replace(/\s+/g, "-"));
+    } catch {
+      setError("Impossible de télécharger toutes les photos.");
+    } finally {
+      setIsDownloadingAll(false);
+    }
+  };
+
+  const handleDelete = async (image: GalleryImage) => {
+    setDeletingId(image.id);
+    setError(null);
+
+    try {
+      await deleteImage(image.id);
+      setImages((current) => current.filter((item) => item.id !== image.id));
+    } catch {
+      setError("Impossible de supprimer cette photo.");
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -109,19 +183,53 @@ export function GalleryPage({
             </div>
 
             {configured && (
-              <button
-                type="button"
-                onClick={() => void handleRefresh()}
-                disabled={isRefreshing}
-                className="flex h-11 shrink-0 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-                aria-label="Actualiser la galerie"
-              >
-                <RefreshCw
-                  className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
-                  aria-hidden="true"
-                />
-                <span className="hidden sm:inline">Actualiser</span>
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                {isSuperAdmin && config.folder === "gallery" && (
+                  <Link
+                    href="/upload"
+                    className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <Users className="h-4 w-4" aria-hidden="true" />
+                    <span className="hidden sm:inline">Photos invités</span>
+                  </Link>
+                )}
+
+                {!isLoading && images.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => void handleDownloadAll()}
+                    disabled={isDownloadingAll}
+                    className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    aria-label="Télécharger toutes les photos"
+                  >
+                    {isDownloadingAll ? (
+                      <Loader2
+                        className="h-4 w-4 animate-spin"
+                        aria-hidden="true"
+                      />
+                    ) : (
+                      <Download className="h-4 w-4" aria-hidden="true" />
+                    )}
+                    <span className="hidden sm:inline">
+                      {isDownloadingAll ? "Téléchargement…" : "Tout télécharger"}
+                    </span>
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => void handleRefresh()}
+                  disabled={isRefreshing}
+                  className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  aria-label="Actualiser la galerie"
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
+                    aria-hidden="true"
+                  />
+                  <span className="hidden sm:inline">Actualiser</span>
+                </button>
+              </div>
             )}
           </div>
         </header>
@@ -132,14 +240,14 @@ export function GalleryPage({
         >
           {!configured && <FirebaseSetupNotice />}
 
-          {configured && config.allowUpload && (
+          {canUpload && (
             <section className="mb-10">
               <UploadZone
                 onUpload={handleUpload}
                 hint={
                   config.folder === "guest"
                     ? "Vos photos seront ajoutées à la collection des invités."
-                    : undefined
+                    : "Les photos seront ajoutées à la galerie publique."
                 }
               />
             </section>
@@ -177,7 +285,12 @@ export function GalleryPage({
             {isLoading ? (
               <GallerySkeleton />
             ) : images.length > 0 ? (
-              <ImageGrid images={images} />
+              <ImageGrid
+                images={images}
+                isSuperAdmin={isSuperAdmin}
+                onDelete={isSuperAdmin ? handleDelete : undefined}
+                deletingId={deletingId}
+              />
             ) : configured ? (
               <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface px-6 py-16 text-center">
                 <Images

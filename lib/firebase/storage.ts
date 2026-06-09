@@ -5,6 +5,7 @@ import {
   uploadBytes,
   getMetadata,
 } from "firebase/storage";
+import { getIdToken } from "./auth";
 import { getFirebaseStorage } from "./client";
 import type { GalleryImage, StorageFolder } from "@/lib/types";
 
@@ -48,6 +49,10 @@ export async function uploadImage(
   folder: StorageFolder,
   file: File,
 ): Promise<GalleryImage> {
+  if (folder === "gallery") {
+    return uploadGalleryImage(file);
+  }
+
   const storage = getFirebaseStorage();
   const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
   const fileRef = ref(storage, `${folder}/${safeName}`);
@@ -68,4 +73,48 @@ export async function uploadImage(
     uploadedAt: metadata.timeCreated,
     size: metadata.size,
   };
+}
+
+async function uploadGalleryImage(file: File): Promise<GalleryImage> {
+  const token = await getIdToken();
+  if (!token) {
+    throw new Error("Non authentifié");
+  }
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch("/api/photos/upload", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    throw new Error("Impossible d'envoyer la photo");
+  }
+
+  return (await response.json()) as GalleryImage;
+}
+
+export async function deleteImage(path: string): Promise<void> {
+  const token = await getIdToken();
+  if (!token) {
+    throw new Error("Non authentifié");
+  }
+
+  const response = await fetch("/api/photos/delete", {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ path }),
+  });
+
+  if (!response.ok) {
+    throw new Error("Impossible de supprimer la photo");
+  }
 }

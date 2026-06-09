@@ -4,11 +4,12 @@ export const GALLERY_CONFIG: GalleryConfig = {
   folder: "gallery",
   title: "Anniv Enzo",
   subtitle: "Les plus beaux souvenirs de la soirée",
-  allowUpload: false,
+  allowUpload: true,
+  adminOnlyUpload: true,
   emptyMessage: "Aucune photo pour le moment.",
 };
 
-export const UPLOAD_CONFIG: GalleryConfig = {
+export const GUEST_CONFIG: GalleryConfig = {
   folder: "guest",
   title: "Partager une photo",
   subtitle: "Envoyez vos souvenirs de la soirée",
@@ -16,6 +17,9 @@ export const UPLOAD_CONFIG: GalleryConfig = {
   emptyMessage:
     "Aucune photo partagée pour le moment — soyez le premier à en ajouter !",
 };
+
+/** @deprecated Use GUEST_CONFIG */
+export const UPLOAD_CONFIG = GUEST_CONFIG;
 
 export const VAULT_CONFIG: GalleryConfig = {
   folder: "special",

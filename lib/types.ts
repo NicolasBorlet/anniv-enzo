@@ -13,5 +13,7 @@ export type GalleryConfig = {
   title: string;
   subtitle: string;
   allowUpload: boolean;
+  /** Upload réservé aux super admins connectés */
+  adminOnlyUpload?: boolean;
   emptyMessage: string;
 };

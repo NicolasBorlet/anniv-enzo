@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, Trash2, X } from "lucide-react";
 import { useEffect, useRef } from "react";
 import type { GalleryImage } from "@/lib/types";
 
@@ -11,6 +11,10 @@ type LightboxProps = {
   onClose: () => void;
   onNext: () => void;
   onPrev: () => void;
+  onDownload: (image: GalleryImage) => void;
+  onDelete?: (image: GalleryImage) => void;
+  isSuperAdmin?: boolean;
+  isDeleting?: boolean;
 };
 
 export function Lightbox({
@@ -19,6 +23,10 @@ export function Lightbox({
   onClose,
   onNext,
   onPrev,
+  onDownload,
+  onDelete,
+  isSuperAdmin = false,
+  isDeleting = false,
 }: LightboxProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const image = images[currentIndex];
@@ -39,15 +47,44 @@ export function Lightbox({
       aria-label={`Visualisation : ${image.name}`}
       onClick={onClose}
     >
-      <button
-        ref={closeRef}
-        type="button"
-        onClick={onClose}
-        className="absolute right-4 top-4 flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors duration-200 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
-        aria-label="Fermer"
-      >
-        <X className="h-5 w-5" aria-hidden="true" />
-      </button>
+      <div className="absolute right-4 top-4 flex gap-2">
+        <button
+          type="button"
+          onClick={(event) => {
+            event.stopPropagation();
+            onDownload(image);
+          }}
+          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors duration-200 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          aria-label={`Télécharger ${image.name}`}
+        >
+          <Download className="h-5 w-5" aria-hidden="true" />
+        </button>
+
+        {isSuperAdmin && onDelete && (
+          <button
+            type="button"
+            disabled={isDeleting}
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete(image);
+            }}
+            className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-destructive/80 text-white transition-colors duration-200 hover:bg-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:cursor-not-allowed disabled:opacity-50"
+            aria-label={`Supprimer ${image.name}`}
+          >
+            <Trash2 className="h-5 w-5" aria-hidden="true" />
+          </button>
+        )}
+
+        <button
+          ref={closeRef}
+          type="button"
+          onClick={onClose}
+          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors duration-200 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          aria-label="Fermer"
+        >
+          <X className="h-5 w-5" aria-hidden="true" />
+        </button>
+      </div>
 
       {images.length > 1 && (
         <>
