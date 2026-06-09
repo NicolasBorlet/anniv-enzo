@@ -133,31 +133,6 @@ export async function deleteStorageObject(path: string) {
   await bucket.file(path).delete();
 }
 
-export async function downloadStorageObject(path: string) {
-  if (!isAllowedStoragePath(path)) {
-    throw new Error("Invalid path");
-  }
-
-  const { getStorage } = await import("firebase-admin/storage");
-  const bucket = getStorage(await getAdminApp()).bucket();
-  const file = bucket.file(path);
-  const [exists] = await file.exists();
-
-  if (!exists) {
-    throw new Error("Not found");
-  }
-
-  const [[buffer], [metadata]] = await Promise.all([
-    file.download(),
-    file.getMetadata(),
-  ]);
-
-  return {
-    buffer,
-    contentType: metadata.contentType ?? "application/octet-stream",
-  };
-}
-
 export async function uploadStorageObject(
   path: string,
   buffer: Buffer,

@@ -1,15 +1,20 @@
 import JSZip from "jszip";
+import { getBytes, ref } from "firebase/storage";
+import { getFirebaseStorage } from "./firebase/client";
 import type { GalleryImage } from "./types";
 
-async function fetchImageBlob(image: GalleryImage): Promise<Blob> {
-  const response = await fetch(image.url);
-  if (!response.ok) {
-    throw new Error(`Échec du téléchargement (${response.status})`);
-  }
-  return response.blob();
+function triggerUrlDownload(image: GalleryImage) {
+  const anchor = document.createElement("a");
+  anchor.href = image.url;
+  anchor.download = image.name;
+  anchor.target = "_blank";
+  anchor.rel = "noopener noreferrer";
+  document.body.appendChild(anchor);
+  anchor.click();
+  document.body.removeChild(anchor);
 }
 
-function triggerDownload(blob: Blob, filename: string) {
+function triggerBlobDownload(blob: Blob, filename: string) {
   const objectUrl = URL.createObjectURL(blob);
   const anchor = document.createElement("a");
   anchor.href = objectUrl;
@@ -18,9 +23,18 @@ function triggerDownload(blob: Blob, filename: string) {
   URL.revokeObjectURL(objectUrl);
 }
 
+async function fetchImageBlob(image: GalleryImage): Promise<Blob> {
+  const bytes = await getBytes(ref(getFirebaseStorage(), image.id));
+  return new Blob([bytes]);
+}
+
 export async function downloadImage(image: GalleryImage): Promise<void> {
-  const blob = await fetchImageBlob(image);
-  triggerDownload(blob, image.name);
+  try {
+    const blob = await fetchImageBlob(image);
+    triggerBlobDownload(blob, image.name);
+  } catch {
+    triggerUrlDownload(image);
+  }
 }
 
 export async function downloadAllImages(
@@ -59,5 +73,5 @@ export async function downloadAllImages(
   );
 
   const zipBlob = await zip.generateAsync({ type: "blob" });
-  triggerDownload(zipBlob, `${archiveName}.zip`);
+  triggerBlobDownload(zipBlob, `${archiveName}.zip`);
 }
