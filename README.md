@@ -42,13 +42,22 @@ L'interface reste identique pour les invités. Seuls les super admins connectés
 NEXT_PUBLIC_SUPER_ADMIN_EMAILS=admin@example.com,autre@example.com
 ```
 
-4. Ajoutez la clé de compte de service (requise pour la suppression côté serveur) :
+4. Ajoutez la clé de compte de service (requise pour upload/suppression/téléchargement côté serveur) :
+
+**En local** — téléchargez le JSON depuis Firebase et placez-le à la racine :
+
+```bash
+# firebase-service-account.json  (gitignored)
+FIREBASE_SERVICE_ACCOUNT_PATH=./firebase-service-account.json
+```
+
+**Sur Vercel** — pas de fichier disponible, utilisez une variable d'environnement :
 
 ```env
 FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
 ```
 
-> Console Firebase > Paramètres du projet > Comptes de service > Générer une nouvelle clé privée. Collez le JSON sur une seule ligne.
+> Console Firebase > Paramètres du projet > Comptes de service > Générer une nouvelle clé privée. Sur Vercel, collez le JSON sur **une seule ligne**.
 
 ### Connexion admin
 

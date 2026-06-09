@@ -31,7 +31,7 @@ export async function DELETE(request: Request) {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
-    if (message.includes("FIREBASE_SERVICE_ACCOUNT_KEY")) {
+    if (message.includes("FIREBASE_SERVICE_ACCOUNT")) {
       return NextResponse.json(
         { error: "Configuration serveur incomplète" },
         { status: 503 },

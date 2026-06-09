@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { downloadStorageObject } from "@/lib/firebase/admin";
 
+export const runtime = "nodejs";
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -29,7 +31,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Photo introuvable" }, { status: 404 });
     }
 
-    if (message.includes("FIREBASE_SERVICE_ACCOUNT_KEY")) {
+    if (message.includes("FIREBASE_SERVICE_ACCOUNT")) {
       return NextResponse.json(
         { error: "Configuration serveur incomplète" },
         { status: 503 },

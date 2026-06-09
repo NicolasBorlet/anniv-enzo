@@ -1,9 +1,79 @@
+import { readFileSync, existsSync } from "node:fs";
+import { resolve } from "node:path";
 import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
 import { getAuth as getAdminAuth } from "firebase-admin/auth";
 import { getStorage as getAdminStorage } from "firebase-admin/storage";
 import { isSuperAdminEmail } from "@/lib/admin";
 
 let adminApp: App | undefined;
+
+type ServiceAccountCredentials = {
+  project_id: string;
+  client_email: string;
+  private_key: string;
+};
+
+function parseServiceAccountJson(raw: string): ServiceAccountCredentials {
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    throw new Error("FIREBASE_SERVICE_ACCOUNT credentials are empty");
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(trimmed);
+  } catch {
+    try {
+      parsed = JSON.parse(Buffer.from(trimmed, "base64").toString("utf8"));
+    } catch {
+      throw new Error(
+        "FIREBASE_SERVICE_ACCOUNT credentials are invalid JSON",
+      );
+    }
+  }
+
+  if (
+    typeof parsed !== "object" ||
+    parsed === null ||
+    !("project_id" in parsed) ||
+    !("client_email" in parsed) ||
+    !("private_key" in parsed)
+  ) {
+    throw new Error("FIREBASE_SERVICE_ACCOUNT credentials are missing required fields");
+  }
+
+  const serviceAccount = parsed as ServiceAccountCredentials;
+  return {
+    ...serviceAccount,
+    private_key: serviceAccount.private_key.replace(/\\n/g, "\n"),
+  };
+}
+
+function loadServiceAccountCredentials(): ServiceAccountCredentials {
+  const credentialsPath =
+    process.env.FIREBASE_SERVICE_ACCOUNT_PATH ??
+    process.env.GOOGLE_APPLICATION_CREDENTIALS;
+
+  if (credentialsPath) {
+    const absolutePath = resolve(process.cwd(), credentialsPath);
+    if (!existsSync(absolutePath)) {
+      throw new Error(
+        `FIREBASE_SERVICE_ACCOUNT file not found: ${credentialsPath}`,
+      );
+    }
+
+    return parseServiceAccountJson(readFileSync(absolutePath, "utf8"));
+  }
+
+  const envKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY?.trim();
+  if (!envKey) {
+    throw new Error(
+      "FIREBASE_SERVICE_ACCOUNT is not configured (set FIREBASE_SERVICE_ACCOUNT_PATH locally or FIREBASE_SERVICE_ACCOUNT_KEY on Vercel)",
+    );
+  }
+
+  return parseServiceAccountJson(envKey);
+}
 
 function getAdminApp(): App {
   if (adminApp) return adminApp;
@@ -14,16 +84,7 @@ function getAdminApp(): App {
     return adminApp;
   }
 
-  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-  if (!serviceAccountKey) {
-    throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY is not configured");
-  }
-
-  const serviceAccount = JSON.parse(serviceAccountKey) as {
-    project_id: string;
-    client_email: string;
-    private_key: string;
-  };
+  const serviceAccount = loadServiceAccountCredentials();
 
   adminApp = initializeApp({
     credential: cert({
