@@ -43,11 +43,6 @@ export async function downloadAllImages(
 ): Promise<void> {
   if (images.length === 0) return;
 
-  if (images.length === 1) {
-    await downloadImage(images[0]);
-    return;
-  }
-
   const zip = new JSZip();
   const usedNames = new Set<string>();
 
