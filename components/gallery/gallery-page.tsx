@@ -142,7 +142,7 @@ export function GalleryPage({
       {showEasterEgg && <EasterEggListener />}
 
       <div className="min-h-dvh bg-background">
-        <header className="border-b border-border bg-surface/80 backdrop-blur-md">
+        <header className="border-b border-border bg-surface/85 backdrop-blur-md">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-6 sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-start gap-3">
               {backHref && (
@@ -187,7 +187,7 @@ export function GalleryPage({
                 {isSuperAdmin && config.folder === "gallery" && (
                   <Link
                     href="/upload"
-                    className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <Users className="h-4 w-4" aria-hidden="true" />
                     <span className="hidden sm:inline">Photos invités</span>
@@ -199,7 +199,7 @@ export function GalleryPage({
                     type="button"
                     onClick={() => void handleDownloadAll()}
                     disabled={isDownloadingAll}
-                    className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                     aria-label="Télécharger toutes les photos"
                   >
                     {isDownloadingAll ? (
@@ -220,7 +220,7 @@ export function GalleryPage({
                   type="button"
                   onClick={() => void handleRefresh()}
                   disabled={isRefreshing}
-                  className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Actualiser la galerie"
                 >
                   <RefreshCw
