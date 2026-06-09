@@ -5,6 +5,8 @@ import {
   verifySuperAdminToken,
 } from "@/lib/firebase/admin";
 
+export const runtime = "nodejs";
+
 const IMAGE_TYPES = new Set([
   "image/jpeg",
   "image/png",

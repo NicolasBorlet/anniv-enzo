@@ -5,6 +5,8 @@ import {
   verifySuperAdminToken,
 } from "@/lib/firebase/admin";
 
+export const runtime = "nodejs";
+
 export async function DELETE(request: Request) {
   try {
     const authHeader = request.headers.get("Authorization");

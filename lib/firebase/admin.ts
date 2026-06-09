@@ -50,29 +50,28 @@ function parseServiceAccountJson(raw: string): ServiceAccountCredentials {
 }
 
 function loadServiceAccountCredentials(): ServiceAccountCredentials {
+  const envKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY?.trim();
+  if (envKey) {
+    return parseServiceAccountJson(envKey);
+  }
+
   const credentialsPath =
     process.env.FIREBASE_SERVICE_ACCOUNT_PATH ??
     process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
   if (credentialsPath) {
-    const absolutePath = resolve(process.cwd(), credentialsPath);
-    if (!existsSync(absolutePath)) {
-      throw new Error(
-        `FIREBASE_SERVICE_ACCOUNT file not found: ${credentialsPath}`,
-      );
-    }
-
-    return parseServiceAccountJson(readFileSync(absolutePath, "utf8"));
-  }
-
-  const envKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY?.trim();
-  if (!envKey) {
-    throw new Error(
-      "FIREBASE_SERVICE_ACCOUNT is not configured (set FIREBASE_SERVICE_ACCOUNT_PATH locally or FIREBASE_SERVICE_ACCOUNT_KEY on Vercel)",
+    const absolutePath = resolve(
+      /* turbopackIgnore: true */ process.cwd(),
+      credentialsPath,
     );
+    if (existsSync(absolutePath)) {
+      return parseServiceAccountJson(readFileSync(absolutePath, "utf8"));
+    }
   }
 
-  return parseServiceAccountJson(envKey);
+  throw new Error(
+    "FIREBASE_SERVICE_ACCOUNT is not configured (set FIREBASE_SERVICE_ACCOUNT_PATH locally or FIREBASE_SERVICE_ACCOUNT_KEY on Vercel)",
+  );
 }
 
 function getAdminApp(): App {

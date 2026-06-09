@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "firebase:encode-key": "bun -e \"console.log(Buffer.from(require('node:fs').readFileSync('firebase-service-account.json')).toString('base64'))\""
   },
   "dependencies": {
     "firebase": "^12.14.0",

@@ -51,13 +51,17 @@ NEXT_PUBLIC_SUPER_ADMIN_EMAILS=admin@example.com,autre@example.com
 FIREBASE_SERVICE_ACCOUNT_PATH=./firebase-service-account.json
 ```
 
-**Sur Vercel** — pas de fichier disponible, utilisez une variable d'environnement :
+**Sur Vercel** — pas de fichier disponible :
 
-```env
-FIREBASE_SERVICE_ACCOUNT_KEY={"type":"service_account",...}
+1. **Supprimez** `FIREBASE_SERVICE_ACCOUNT_PATH` des variables Vercel (si présente)
+2. Ajoutez `FIREBASE_SERVICE_ACCOUNT_KEY` avec le contenu encodé en base64 :
+
+```bash
+bun run firebase:encode-key
+# Copiez la sortie dans Vercel > Settings > Environment Variables
 ```
 
-> Console Firebase > Paramètres du projet > Comptes de service > Générer une nouvelle clé privée. Sur Vercel, collez le JSON sur **une seule ligne**.
+Alternative : collez le JSON sur **une seule ligne** (sans retours à la ligne).
 
 ### Connexion admin
 

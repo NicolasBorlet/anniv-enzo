@@ -2,7 +2,9 @@ import JSZip from "jszip";
 import type { GalleryImage } from "./types";
 
 async function fetchImageBlob(image: GalleryImage): Promise<Blob> {
-  const response = await fetch(image.url);
+  const response = await fetch(
+    `/api/photos/download?path=${encodeURIComponent(image.id)}`,
+  );
   if (!response.ok) {
     throw new Error(`Échec du téléchargement (${response.status})`);
   }
