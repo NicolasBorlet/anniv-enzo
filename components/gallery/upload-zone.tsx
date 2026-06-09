@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useRef, useState } from "react";
-import { Camera, Loader2, Upload } from "lucide-react";
+import { Camera, Loader2, Sparkles, Upload } from "lucide-react";
 
 type UploadZoneProps = {
   onUpload: (files: File[]) => Promise<void>;
@@ -83,16 +83,20 @@ export function UploadZone({
         className={[
           "group relative flex min-h-36 cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-8 text-center transition-all duration-200",
           isDragging
-            ? "border-primary bg-primary/5 scale-[1.01]"
-            : "border-border bg-surface hover:border-primary/40 hover:bg-muted/50",
+            ? "border-primary bg-primary/5 shadow-[0_0_24px_var(--glow-primary)] scale-[1.01]"
+            : "glass-card hover:border-primary/40 hover:shadow-[0_4px_20px_var(--glow-primary)]",
           (disabled || isUploading) && "pointer-events-none opacity-60",
         ].join(" ")}
       >
-        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted transition-colors duration-200 group-hover:bg-primary group-hover:text-on-primary">
+        <div className="relative flex h-14 w-14 items-center justify-center rounded-full bg-muted transition-all duration-300 group-hover:bg-primary group-hover:text-on-primary group-hover:shadow-[0_0_24px_var(--glow-primary),0_0_12px_var(--glow-gold)]">
+          <Sparkles
+            className="absolute -right-1 -top-1 h-4 w-4 text-accent opacity-0 transition-opacity duration-300 group-hover:opacity-100 motion-safe:animate-sparkle"
+            aria-hidden="true"
+          />
           {isUploading ? (
-            <Loader2 className="h-5 w-5 animate-spin" aria-hidden="true" />
+            <Loader2 className="h-6 w-6 animate-spin icon-glow" aria-hidden="true" />
           ) : (
-            <Upload className="h-5 w-5" aria-hidden="true" />
+            <Upload className="h-6 w-6 motion-safe:group-hover:animate-sparkle" aria-hidden="true" />
           )}
         </div>
 

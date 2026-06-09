@@ -41,7 +41,11 @@ export function Lightbox({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm motion-reduce:backdrop-blur-none"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#1a0520]/88 p-4 backdrop-blur-lg motion-reduce:backdrop-blur-none"
+      style={{
+        backgroundImage:
+          "radial-gradient(ellipse 60% 50% at 50% 50%, rgba(217,70,239,0.15), transparent 70%)",
+      }}
       role="dialog"
       aria-modal="true"
       aria-label={`Visualisation : ${image.name}`}
@@ -54,7 +58,7 @@ export function Lightbox({
             event.stopPropagation();
             onDownload(image);
           }}
-          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors duration-200 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-primary/30 text-white shadow-[0_0_12px_var(--glow-primary)] transition-all duration-200 hover:bg-primary/50 hover:shadow-[0_0_20px_var(--glow-gold)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label={`Télécharger ${image.name}`}
         >
           <Download className="h-5 w-5" aria-hidden="true" />
@@ -79,7 +83,7 @@ export function Lightbox({
           ref={closeRef}
           type="button"
           onClick={onClose}
-          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors duration-200 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-secondary/30 text-white shadow-[0_0_12px_var(--glow-secondary)] transition-all duration-200 hover:bg-secondary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label="Fermer"
         >
           <X className="h-5 w-5" aria-hidden="true" />
@@ -94,7 +98,7 @@ export function Lightbox({
               event.stopPropagation();
               onPrev();
             }}
-            className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors duration-200 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-primary/30 text-white shadow-[0_0_12px_var(--glow-primary)] transition-all duration-200 hover:bg-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label="Photo précédente"
           >
             <ChevronLeft className="h-6 w-6" aria-hidden="true" />
@@ -105,7 +109,7 @@ export function Lightbox({
               event.stopPropagation();
               onNext();
             }}
-            className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-white/10 text-white transition-colors duration-200 hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:right-16"
+            className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-primary/30 text-white shadow-[0_0_12px_var(--glow-primary)] transition-all duration-200 hover:bg-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:right-16"
             aria-label="Photo suivante"
           >
             <ChevronRight className="h-6 w-6" aria-hidden="true" />
@@ -123,7 +127,7 @@ export function Lightbox({
             alt={image.name}
             width={1200}
             height={900}
-            className="mx-auto max-h-[75vh] w-auto rounded-lg object-contain"
+            className="mx-auto max-h-[75vh] w-auto rounded-xl object-contain shadow-[0_0_40px_var(--glow-primary),0_0_60px_var(--glow-gold)]"
             priority
           />
         </div>

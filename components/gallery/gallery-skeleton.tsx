@@ -7,7 +7,7 @@ export function GallerySkeleton() {
       {Array.from({ length: 8 }).map((_, index) => (
         <div
           key={index}
-          className="aspect-square animate-pulse rounded-xl bg-muted"
+          className="aspect-square rounded-xl shimmer-surface"
         />
       ))}
     </div>

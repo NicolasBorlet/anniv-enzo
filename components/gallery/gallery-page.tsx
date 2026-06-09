@@ -141,14 +141,14 @@ export function GalleryPage({
     <>
       {showEasterEgg && <EasterEggListener />}
 
-      <div className="min-h-dvh bg-background">
-        <header className="border-b border-border bg-surface/80 backdrop-blur-md">
+      <div className="min-h-dvh">
+        <header className="border-b border-border bg-surface/80 backdrop-blur-md shadow-[0_4px_32px_var(--glow-primary),0_0_40px_var(--glow-accent)]">
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-6 sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-start gap-3">
               {backHref && (
                 <Link
                   href={backHref}
-                  className="mt-1 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-colors duration-200 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="mt-1 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-full text-muted-foreground transition-all duration-200 hover:bg-muted hover:text-primary hover:shadow-[0_0_12px_var(--glow-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   aria-label="Retour à la galerie"
                 >
                   <ArrowLeft className="h-5 w-5" aria-hidden="true" />
@@ -158,25 +158,25 @@ export function GalleryPage({
                 <div className="flex items-center gap-2">
                   {config.folder === "special" ? (
                     <Sparkles
-                      className="h-5 w-5 shrink-0 text-primary"
+                      className="h-5 w-5 shrink-0 text-accent icon-glow motion-safe:animate-sparkle"
                       aria-hidden="true"
                     />
                   ) : config.folder === "guest" ? (
                     <Camera
-                      className="h-5 w-5 shrink-0 text-primary"
+                      className="h-5 w-5 shrink-0 text-secondary icon-glow motion-safe:animate-sparkle"
                       aria-hidden="true"
                     />
                   ) : (
                     <Images
-                      className="h-5 w-5 shrink-0 text-primary"
+                      className="h-5 w-5 shrink-0 text-primary icon-glow motion-safe:animate-sparkle"
                       aria-hidden="true"
                     />
                   )}
-                  <h1 className="font-heading text-3xl tracking-wide text-foreground sm:text-4xl">
+                  <h1 className="font-heading text-3xl font-semibold tracking-tight text-magic-gradient sm:text-4xl">
                     {config.title}
                   </h1>
                 </div>
-                <p className="mt-1 text-sm text-muted-foreground sm:text-base">
+                <p className="mt-1 font-accent text-xl text-secondary sm:text-2xl">
                   {config.subtitle}
                 </p>
               </div>
@@ -187,7 +187,7 @@ export function GalleryPage({
                 {isSuperAdmin && config.folder === "gallery" && (
                   <Link
                     href="/upload"
-                    className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="glass-card flex h-11 cursor-pointer items-center gap-2 rounded-full px-4 text-sm font-medium text-foreground transition-all duration-200 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <Users className="h-4 w-4" aria-hidden="true" />
                     <span className="hidden sm:inline">Photos invités</span>
@@ -199,7 +199,7 @@ export function GalleryPage({
                     type="button"
                     onClick={() => void handleDownloadAll()}
                     disabled={isDownloadingAll}
-                    className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                    className="glass-card flex h-11 cursor-pointer items-center gap-2 rounded-full px-4 text-sm font-medium text-foreground transition-all duration-200 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                     aria-label="Télécharger toutes les photos"
                   >
                     {isDownloadingAll ? (
@@ -220,7 +220,7 @@ export function GalleryPage({
                   type="button"
                   onClick={() => void handleRefresh()}
                   disabled={isRefreshing}
-                  className="flex h-11 cursor-pointer items-center gap-2 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-colors duration-200 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                  className="glass-card flex h-11 cursor-pointer items-center gap-2 rounded-full px-4 text-sm font-medium text-foreground transition-all duration-200 hover:border-primary/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                   aria-label="Actualiser la galerie"
                 >
                   <RefreshCw
@@ -256,7 +256,7 @@ export function GalleryPage({
           <section aria-label="Galerie de photos">
             <div className="mb-6 flex items-end justify-between gap-4">
               <div>
-                <h2 className="text-lg font-semibold text-foreground">
+                <h2 className="font-heading text-lg font-semibold text-foreground">
                   {config.folder === "special"
                     ? "Trésors cachés"
                     : config.folder === "guest"
@@ -292,9 +292,9 @@ export function GalleryPage({
                 deletingId={deletingId}
               />
             ) : configured ? (
-              <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-surface px-6 py-16 text-center">
-                <Images
-                  className="h-10 w-10 text-muted-foreground/50"
+              <div className="glass-card flex flex-col items-center justify-center rounded-2xl border-dashed px-6 py-16 text-center">
+                <Sparkles
+                  className="h-10 w-10 text-accent/60 icon-glow motion-safe:animate-sparkle"
                   aria-hidden="true"
                 />
                 <p className="mt-4 max-w-sm text-muted-foreground">

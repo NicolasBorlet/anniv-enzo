@@ -27,12 +27,9 @@ export function ImageCard({
   const [loaded, setLoaded] = useState(false);
 
   return (
-    <div className="group relative aspect-square w-full overflow-hidden rounded-xl bg-muted shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+    <div className="group relative aspect-square w-full overflow-hidden rounded-xl border border-border/60 bg-muted shadow-[0_2px_16px_var(--glow-primary)] transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_8px_32px_var(--glow-primary),0_0_20px_var(--glow-gold)] motion-reduce:hover:translate-y-0">
       {!loaded && (
-        <div
-          className="absolute inset-0 animate-pulse bg-muted"
-          aria-hidden="true"
-        />
+        <div className="absolute inset-0 shimmer-surface" aria-hidden="true" />
       )}
 
       <button

@@ -10,9 +10,9 @@ export const metadata: Metadata = {
 
 function LoginFallback() {
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-background">
+    <div className="flex min-h-dvh items-center justify-center">
       <Loader2
-        className="h-8 w-8 animate-spin text-muted-foreground"
+        className="h-8 w-8 animate-spin text-primary icon-glow"
         aria-label="Chargement"
       />
     </div>

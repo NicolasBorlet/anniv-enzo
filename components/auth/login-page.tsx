@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { ArrowLeft, Loader2, Lock } from "lucide-react";
+import { ArrowLeft, Loader2, Lock, Sparkles } from "lucide-react";
 import { useAuth } from "@/components/auth/auth-provider";
 
 function isSafeRedirect(path: string | null): path is string {
@@ -48,9 +48,9 @@ export function LoginPage() {
 
   if (authLoading || isSuperAdmin) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-background">
+      <div className="flex min-h-dvh items-center justify-center">
         <Loader2
-          className="h-8 w-8 animate-spin text-muted-foreground"
+          className="h-8 w-8 animate-spin text-primary icon-glow"
           aria-label="Chargement"
         />
       </div>
@@ -58,7 +58,7 @@ export function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-background">
+    <div className="flex min-h-dvh flex-col">
       <main
         id="main-content"
         className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center px-4 py-16 sm:px-6"
@@ -71,13 +71,21 @@ export function LoginPage() {
           <ArrowLeft className="h-5 w-5" aria-hidden="true" />
         </Link>
 
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm sm:p-8">
+        <div className="glass-card relative overflow-hidden rounded-2xl p-6 sm:p-8">
+          <Sparkles
+            className="absolute right-4 top-4 h-5 w-5 text-accent/50 icon-glow motion-safe:animate-sparkle"
+            aria-hidden="true"
+          />
+          <Sparkles
+            className="absolute bottom-6 left-4 h-4 w-4 text-secondary/40 motion-safe:animate-sparkle motion-safe:[animation-delay:1.5s]"
+            aria-hidden="true"
+          />
           <div className="mb-6 flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted">
-              <Lock className="h-5 w-5 text-foreground" aria-hidden="true" />
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted shadow-[0_0_16px_var(--glow-primary)] motion-safe:animate-glow-pulse">
+              <Lock className="h-5 w-5 text-primary icon-glow" aria-hidden="true" />
             </div>
             <div>
-              <h1 className="font-heading text-3xl tracking-wide text-foreground">
+              <h1 className="font-heading text-3xl font-semibold tracking-tight text-magic-gradient">
                 Administration
               </h1>
               <p className="text-sm text-muted-foreground">
@@ -133,7 +141,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full bg-primary text-sm font-medium text-on-primary transition-opacity duration-200 hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              className="btn-magic flex h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-full text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
             >
               {isSubmitting && (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />

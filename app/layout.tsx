@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
-import { Bebas_Neue, Source_Sans_3 } from "next/font/google";
+import { Cormorant_Infant, Great_Vibes, Playfair_Display } from "next/font/google";
 import { AuthProvider } from "@/components/auth/auth-provider";
+import { SparkleField } from "@/components/magic/sparkle-field";
 import "./globals.css";
 
-const bebasNeue = Bebas_Neue({
-  variable: "--font-bebas-neue",
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair",
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "500", "600", "700"],
 });
 
-const sourceSans = Source_Sans_3({
-  variable: "--font-source-sans",
+const cormorantInfant = Cormorant_Infant({
+  variable: "--font-cormorant",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
+});
+
+const greatVibes = Great_Vibes({
+  variable: "--font-great-vibes",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -38,16 +45,19 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
-      className={`${bebasNeue.variable} ${sourceSans.variable} h-full antialiased`}
+      className={`${playfairDisplay.variable} ${cormorantInfant.variable} ${greatVibes.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col">
+      <body className="relative flex min-h-full flex-col">
+        <SparkleField />
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-on-primary"
+          className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-100 focus:rounded-lg focus:bg-primary focus:px-4 focus:py-2 focus:text-on-primary"
         >
           Aller au contenu principal
         </a>
-        <AuthProvider>{children}</AuthProvider>
+        <div className="relative z-10 flex min-h-full flex-1 flex-col">
+          <AuthProvider>{children}</AuthProvider>
+        </div>
       </body>
     </html>
   );

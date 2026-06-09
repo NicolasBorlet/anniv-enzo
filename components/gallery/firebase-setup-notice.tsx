@@ -4,19 +4,19 @@ export function FirebaseSetupNotice() {
   return (
     <div
       role="alert"
-      className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-amber-950"
+      className="glass-card rounded-2xl border-accent/40 p-6 text-foreground"
     >
       <div className="flex gap-3">
         <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
         <div>
           <h2 className="font-semibold">Configuration Firebase requise</h2>
-          <p className="mt-2 text-sm leading-relaxed text-amber-900/80">
+          <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
             Copiez{" "}
-            <code className="rounded bg-amber-100 px-1.5 py-0.5 text-xs">
+            <code className="rounded bg-muted px-1.5 py-0.5 text-xs text-primary">
               .env.local.example
             </code>{" "}
             vers{" "}
-            <code className="rounded bg-amber-100 px-1.5 py-0.5 text-xs">
+            <code className="rounded bg-muted px-1.5 py-0.5 text-xs text-primary">
               .env.local
             </code>{" "}
             et renseignez vos clés Firebase. Consultez le README pour les règles
