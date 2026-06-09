@@ -1,11 +1,8 @@
-import { readFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
-import { cert, getApps, initializeApp, type App } from "firebase-admin/app";
-import { getAuth as getAdminAuth } from "firebase-admin/auth";
-import { getStorage as getAdminStorage } from "firebase-admin/storage";
+import type { App } from "firebase-admin/app";
 import { isSuperAdminEmail } from "@/lib/admin";
 
 let adminApp: App | undefined;
+let adminAppPromise: Promise<App> | undefined;
 
 type ServiceAccountCredentials = {
   project_id: string;
@@ -49,7 +46,7 @@ function parseServiceAccountJson(raw: string): ServiceAccountCredentials {
   };
 }
 
-function loadServiceAccountCredentials(): ServiceAccountCredentials {
+async function loadServiceAccountCredentials(): Promise<ServiceAccountCredentials> {
   const envKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY?.trim();
   if (envKey) {
     return parseServiceAccountJson(envKey);
@@ -60,6 +57,8 @@ function loadServiceAccountCredentials(): ServiceAccountCredentials {
     process.env.GOOGLE_APPLICATION_CREDENTIALS;
 
   if (credentialsPath) {
+    const { existsSync, readFileSync } = await import("node:fs");
+    const { resolve } = await import("node:path");
     const absolutePath = resolve(
       /* turbopackIgnore: true */ process.cwd(),
       credentialsPath,
@@ -74,31 +73,39 @@ function loadServiceAccountCredentials(): ServiceAccountCredentials {
   );
 }
 
-function getAdminApp(): App {
+async function getAdminApp(): Promise<App> {
   if (adminApp) return adminApp;
+  if (adminAppPromise) return adminAppPromise;
 
-  const existing = getApps();
-  if (existing.length > 0) {
-    adminApp = existing[0];
+  adminAppPromise = (async () => {
+    const { cert, getApps, initializeApp } = await import("firebase-admin/app");
+
+    const existing = getApps();
+    if (existing.length > 0) {
+      adminApp = existing[0];
+      return adminApp;
+    }
+
+    const serviceAccount = await loadServiceAccountCredentials();
+
+    adminApp = initializeApp({
+      credential: cert({
+        projectId: serviceAccount.project_id,
+        clientEmail: serviceAccount.client_email,
+        privateKey: serviceAccount.private_key,
+      }),
+      storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    });
+
     return adminApp;
-  }
+  })();
 
-  const serviceAccount = loadServiceAccountCredentials();
-
-  adminApp = initializeApp({
-    credential: cert({
-      projectId: serviceAccount.project_id,
-      clientEmail: serviceAccount.client_email,
-      privateKey: serviceAccount.private_key,
-    }),
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-  });
-
-  return adminApp;
+  return adminAppPromise;
 }
 
 export async function verifySuperAdminToken(token: string) {
-  const decoded = await getAdminAuth(getAdminApp()).verifyIdToken(token);
+  const { getAuth } = await import("firebase-admin/auth");
+  const decoded = await getAuth(await getAdminApp()).verifyIdToken(token);
   if (!isSuperAdminEmail(decoded.email)) {
     throw new Error("Forbidden");
   }
@@ -121,7 +128,8 @@ export async function deleteStorageObject(path: string) {
     throw new Error("Invalid path");
   }
 
-  const bucket = getAdminStorage(getAdminApp()).bucket();
+  const { getStorage } = await import("firebase-admin/storage");
+  const bucket = getStorage(await getAdminApp()).bucket();
   await bucket.file(path).delete();
 }
 
@@ -130,7 +138,8 @@ export async function downloadStorageObject(path: string) {
     throw new Error("Invalid path");
   }
 
-  const bucket = getAdminStorage(getAdminApp()).bucket();
+  const { getStorage } = await import("firebase-admin/storage");
+  const bucket = getStorage(await getAdminApp()).bucket();
   const file = bucket.file(path);
   const [exists] = await file.exists();
 
@@ -158,7 +167,8 @@ export async function uploadStorageObject(
     throw new Error("Invalid path");
   }
 
-  const bucket = getAdminStorage(getAdminApp()).bucket();
+  const { getStorage } = await import("firebase-admin/storage");
+  const bucket = getStorage(await getAdminApp()).bucket();
   const file = bucket.file(path);
 
   await file.save(buffer, {
