@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,
   Camera,
@@ -20,7 +20,8 @@ import { ImageGrid } from "@/components/gallery/image-grid";
 import { UploadZone } from "@/components/gallery/upload-zone";
 import { downloadAllImages } from "@/lib/download";
 import { isFirebaseConfigured } from "@/lib/firebase/client";
-import { deleteImage, listImages, uploadImage } from "@/lib/firebase/storage";
+import { deleteImage, uploadImage } from "@/lib/firebase/storage";
+import { useGalleryImages } from "@/lib/hooks/use-gallery-images";
 import type { GalleryConfig, GalleryImage } from "@/lib/types";
 
 type GalleryPageProps = {
@@ -40,82 +41,68 @@ export function GalleryPage({
     configured &&
     config.allowUpload &&
     (!config.adminOnlyUpload || isSuperAdmin);
-  const [images, setImages] = useState<GalleryImage[]>([]);
-  const [isLoading, setIsLoading] = useState(configured);
-  const [error, setError] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  const loadImages = useCallback(async () => {
-    if (!configured) {
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      setError(null);
-      const result = await listImages(config.folder);
-      setImages(result);
-    } catch {
-      setError("Impossible de charger les photos. Vérifiez votre connexion.");
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
-    }
-  }, [configured, config.folder]);
+  const {
+    images,
+    total,
+    isLoading,
+    isLoadingMore,
+    hasMore,
+    error,
+    setError,
+    refresh,
+    loadMore,
+    prependImage,
+    removeImage,
+    loadAllForDownload,
+  } = useGalleryImages(config.folder, configured);
 
   useEffect(() => {
-    if (!configured) return;
+    const sentinel = loadMoreRef.current;
+    if (!sentinel || !hasMore || isLoading || isLoadingMore) return;
 
-    let cancelled = false;
-
-    async function fetchImages() {
-      try {
-        const result = await listImages(config.folder);
-        if (!cancelled) {
-          setError(null);
-          setImages(result);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          void loadMore();
         }
-      } catch {
-        if (!cancelled) {
-          setError("Impossible de charger les photos. Vérifiez votre connexion.");
-        }
-      } finally {
-        if (!cancelled) {
-          setIsLoading(false);
-          setIsRefreshing(false);
-        }
-      }
-    }
+      },
+      { rootMargin: "200px" },
+    );
 
-    void fetchImages();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [configured, config.folder]);
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, isLoading, isLoadingMore, loadMore]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await loadImages();
+    await refresh();
+    setIsRefreshing(false);
   };
 
   const handleUpload = async (files: File[]) => {
     for (const file of files) {
       const uploaded = await uploadImage(config.folder, file);
-      setImages((current) => [uploaded, ...current]);
+      prependImage(uploaded);
     }
   };
 
   const handleDownloadAll = async () => {
-    if (images.length === 0) return;
+    if (total === 0) return;
 
     setIsDownloadingAll(true);
     setError(null);
 
     try {
-      await downloadAllImages(images, config.title.toLowerCase().replace(/\s+/g, "-"));
+      const allImages = await loadAllForDownload();
+      await downloadAllImages(
+        allImages,
+        config.title.toLowerCase().replace(/\s+/g, "-"),
+      );
     } catch {
       setError("Impossible de télécharger toutes les photos.");
     } finally {
@@ -129,7 +116,7 @@ export function GalleryPage({
 
     try {
       await deleteImage(image.id);
-      setImages((current) => current.filter((item) => item.id !== image.id));
+      removeImage(image.id);
     } catch {
       setError("Impossible de supprimer cette photo.");
     } finally {
@@ -194,7 +181,7 @@ export function GalleryPage({
                   </Link>
                 )}
 
-                {!isLoading && images.length > 0 && (
+                {!isLoading && total > 0 && (
                   <button
                     type="button"
                     onClick={() => void handleDownloadAll()}
@@ -265,9 +252,11 @@ export function GalleryPage({
                 </h2>
                 {!isLoading && configured && (
                   <p className="mt-1 text-sm text-muted-foreground">
-                    {images.length === 0
+                    {total === 0
                       ? "Aucune photo"
-                      : `${images.length} photo${images.length > 1 ? "s" : ""}`}
+                      : hasMore
+                        ? `${images.length} / ${total} photo${total > 1 ? "s" : ""}`
+                        : `${total} photo${total > 1 ? "s" : ""}`}
                   </p>
                 )}
               </div>
@@ -285,12 +274,35 @@ export function GalleryPage({
             {isLoading ? (
               <GallerySkeleton />
             ) : images.length > 0 ? (
-              <ImageGrid
-                images={images}
-                isSuperAdmin={isSuperAdmin}
-                onDelete={isSuperAdmin ? handleDelete : undefined}
-                deletingId={deletingId}
-              />
+              <>
+                <ImageGrid
+                  images={images}
+                  isSuperAdmin={isSuperAdmin}
+                  onDelete={isSuperAdmin ? handleDelete : undefined}
+                  deletingId={deletingId}
+                />
+
+                {(hasMore || isLoadingMore) && (
+                  <div
+                    ref={loadMoreRef}
+                    className="flex justify-center py-8"
+                    aria-live="polite"
+                    aria-busy={isLoadingMore}
+                  >
+                    {isLoadingMore && (
+                      <Loader2
+                        className="h-6 w-6 animate-spin text-muted-foreground"
+                        aria-hidden="true"
+                      />
+                    )}
+                    <span className="sr-only">
+                      {isLoadingMore
+                        ? "Chargement de photos supplémentaires"
+                        : "Faites défiler pour charger plus de photos"}
+                    </span>
+                  </div>
+                )}
+              </>
             ) : configured ? (
               <div className="glass-card flex flex-col items-center justify-center rounded-2xl border-dashed px-6 py-16 text-center">
                 <Sparkles

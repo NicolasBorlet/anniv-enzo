@@ -1,13 +1,19 @@
 import {
   ref,
-  listAll,
+  list,
   getDownloadURL,
   uploadBytes,
   getMetadata,
+  type StorageReference,
 } from "firebase/storage";
 import { getIdToken } from "./auth";
 import { getFirebaseStorage } from "./client";
-import type { GalleryImage, StorageFolder } from "@/lib/types";
+import {
+  GALLERY_PAGE_SIZE,
+  type GalleryImage,
+  type GalleryImagePage,
+  type StorageFolder,
+} from "@/lib/types";
 
 const IMAGE_EXTENSIONS = /\.(jpe?g|png|gif|webp|avif|heic|heif)$/i;
 
@@ -15,34 +21,74 @@ function isImageFile(name: string): boolean {
   return IMAGE_EXTENSIONS.test(name);
 }
 
-export async function listImages(folder: StorageFolder): Promise<GalleryImage[]> {
+async function collectSortedImageRefs(
+  folder: StorageFolder,
+): Promise<StorageReference[]> {
   const storage = getFirebaseStorage();
   const folderRef = ref(storage, folder);
-  const result = await listAll(folderRef);
+  const items: StorageReference[] = [];
+  let pageToken: string | undefined;
 
-  const imageItems = result.items.filter((item) => isImageFile(item.name));
+  do {
+    const result = await list(folderRef, { maxResults: 1000, pageToken });
+    items.push(...result.items.filter((item) => isImageFile(item.name)));
+    pageToken = result.nextPageToken;
+  } while (pageToken);
 
-  const images = await Promise.all(
-    imageItems.map(async (item) => {
-      const [url, metadata] = await Promise.all([
-        getDownloadURL(item),
-        getMetadata(item),
-      ]);
+  return items.sort((a, b) => b.name.localeCompare(a.name));
+}
 
-      return {
-        id: item.fullPath,
-        name: item.name,
-        url,
-        uploadedAt: metadata.timeCreated,
-        size: metadata.size,
-      } satisfies GalleryImage;
-    }),
-  );
+async function refToGalleryImage(item: StorageReference): Promise<GalleryImage> {
+  const [url, metadata] = await Promise.all([
+    getDownloadURL(item),
+    getMetadata(item),
+  ]);
+
+  return {
+    id: item.fullPath,
+    name: item.name,
+    url,
+    uploadedAt: metadata.timeCreated,
+    size: metadata.size,
+  };
+}
+
+export async function listSortedImageRefs(
+  folder: StorageFolder,
+): Promise<StorageReference[]> {
+  return collectSortedImageRefs(folder);
+}
+
+export async function loadImagePage(
+  refs: StorageReference[],
+  offset: number,
+  pageSize = GALLERY_PAGE_SIZE,
+): Promise<GalleryImagePage> {
+  const pageRefs = refs.slice(offset, offset + pageSize);
+  const images = await Promise.all(pageRefs.map(refToGalleryImage));
+
+  return {
+    images,
+    hasMore: offset + pageSize < refs.length,
+    total: refs.length,
+  };
+}
+
+export async function loadAllImageDetails(
+  refs: StorageReference[],
+): Promise<GalleryImage[]> {
+  const images = await Promise.all(refs.map(refToGalleryImage));
 
   return images.sort(
     (a, b) =>
       new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime(),
   );
+}
+
+/** @deprecated Prefer listSortedImageRefs + loadImagePage for pagination */
+export async function listImages(folder: StorageFolder): Promise<GalleryImage[]> {
+  const refs = await collectSortedImageRefs(folder);
+  return loadAllImageDetails(refs);
 }
 
 export async function uploadImage(
