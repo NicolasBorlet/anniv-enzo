@@ -54,7 +54,7 @@ export function Lightbox({
       aria-label={`Visualisation : ${image.name}`}
       onClick={onClose}
     >
-      <div className="absolute right-4 top-4 flex gap-2">
+      <div className="absolute right-4 top-4 z-10 flex gap-2">
         <button
           type="button"
           onClick={(event) => {
@@ -101,7 +101,7 @@ export function Lightbox({
               event.stopPropagation();
               onPrev();
             }}
-            className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-primary/30 text-white shadow-[0_0_12px_var(--glow-primary)] transition-all duration-200 hover:bg-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-primary/30 text-white shadow-[0_0_12px_var(--glow-primary)] transition-all duration-200 hover:bg-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
             aria-label="Photo précédente"
           >
             <ChevronLeft className="h-6 w-6" aria-hidden="true" />
@@ -112,7 +112,7 @@ export function Lightbox({
               event.stopPropagation();
               onNext();
             }}
-            className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-primary/30 text-white shadow-[0_0_12px_var(--glow-primary)] transition-all duration-200 hover:bg-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:right-16"
+            className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-primary/30 text-white shadow-[0_0_12px_var(--glow-primary)] transition-all duration-200 hover:bg-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white sm:right-16"
             aria-label="Photo suivante"
           >
             <ChevronRight className="h-6 w-6" aria-hidden="true" />
