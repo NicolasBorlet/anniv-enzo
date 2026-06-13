@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
     "firebase-admin",
     "@google-cloud/storage",
     "farmhash-modern",
+    "sharp",
   ],
   images: {
     remotePatterns: [

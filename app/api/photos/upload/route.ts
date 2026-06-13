@@ -4,6 +4,8 @@ import {
   uploadStorageObject,
   verifySuperAdminToken,
 } from "@/lib/firebase/admin";
+import { normalizeImageForStorage } from "@/lib/server/normalize-image";
+import { isHeicImage } from "@/lib/image-formats";
 
 export const runtime = "nodejs";
 
@@ -34,22 +36,31 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Fichier manquant" }, { status: 400 });
     }
 
-    if (!IMAGE_TYPES.has(file.type)) {
+    if (!IMAGE_TYPES.has(file.type) && !isHeicImage(file.name, file.type)) {
       return NextResponse.json(
         { error: "Type de fichier non supporté" },
         { status: 400 },
       );
     }
 
-    const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const normalized = await normalizeImageForStorage(
+      buffer,
+      file.type,
+      file.name,
+    );
+    const safeName = `${Date.now()}-${normalized.filename.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
     const path = `gallery/${safeName}`;
 
     if (!isAllowedUploadPath(path)) {
       return NextResponse.json({ error: "Chemin invalide" }, { status: 400 });
     }
 
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const image = await uploadStorageObject(path, buffer, file.type);
+    const image = await uploadStorageObject(
+      path,
+      normalized.buffer,
+      normalized.contentType,
+    );
 
     return NextResponse.json(image);
   } catch (error) {

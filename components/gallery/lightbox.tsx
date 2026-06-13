@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Download, Trash2, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, ImageOff, Loader2, Trash2, X } from "lucide-react";
 import { useEffect, useRef } from "react";
+import { useDisplayableImageUrl } from "@/lib/hooks/use-displayable-image-url";
 import type { GalleryImage } from "@/lib/types";
 
 type LightboxProps = {
@@ -30,6 +31,8 @@ export function Lightbox({
 }: LightboxProps) {
   const closeRef = useRef<HTMLButtonElement>(null);
   const image = images[currentIndex];
+  const { src, isConverting, hasError, unoptimized } =
+    useDisplayableImageUrl(image);
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -121,15 +124,35 @@ export function Lightbox({
         className="relative flex max-h-[85vh] max-w-5xl flex-col items-center"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="relative max-h-[75vh] w-full">
-          <Image
-            src={image.url}
-            alt={image.name}
-            width={1200}
-            height={900}
-            className="mx-auto max-h-[75vh] w-auto rounded-xl object-contain shadow-[0_0_40px_var(--glow-primary),0_0_60px_var(--glow-gold)]"
-            priority
-          />
+        <div className="relative flex min-h-[40vh] max-h-[75vh] w-full items-center justify-center">
+          {isConverting && (
+            <Loader2
+              className="h-10 w-10 animate-spin text-white/70"
+              aria-hidden="true"
+            />
+          )}
+
+          {hasError && !isConverting && (
+            <div className="flex flex-col items-center gap-3 px-6 text-center text-white/80">
+              <ImageOff className="h-12 w-12" aria-hidden="true" />
+              <p className="text-sm">
+                Aperçu indisponible pour ce format. Téléchargez la photo pour
+                la consulter.
+              </p>
+            </div>
+          )}
+
+          {src && !hasError && (
+            <Image
+              src={src}
+              alt={image.name}
+              width={1200}
+              height={900}
+              unoptimized={unoptimized}
+              className="mx-auto max-h-[75vh] w-auto rounded-xl object-contain shadow-[0_0_40px_var(--glow-primary),0_0_60px_var(--glow-gold)]"
+              priority
+            />
+          )}
         </div>
         <figcaption className="mt-4 text-center text-sm text-white/80">
           {image.name}

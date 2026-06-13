@@ -2,6 +2,11 @@
 
 import { useCallback, useRef, useState } from "react";
 import { Camera, Loader2, Sparkles, Upload } from "lucide-react";
+import { isHeicImage } from "@/lib/image-formats";
+
+function isAcceptedImage(file: File): boolean {
+  return file.type.startsWith("image/") || isHeicImage(file.name, file.type);
+}
 
 type UploadZoneProps = {
   onUpload: (files: File[]) => Promise<void>;
@@ -23,9 +28,7 @@ export function UploadZone({
 
   const handleFiles = useCallback(
     async (files: FileList | File[]) => {
-      const imageFiles = Array.from(files).filter((file) =>
-        file.type.startsWith("image/"),
-      );
+      const imageFiles = Array.from(files).filter(isAcceptedImage);
 
       if (imageFiles.length === 0) {
         setError("Veuillez sélectionner au moins une image.");
@@ -107,7 +110,7 @@ export function UploadZone({
               : "Glissez vos photos ici ou cliquez pour parcourir"}
           </p>
           <p className="mt-1 text-sm text-muted-foreground">
-            JPG, PNG, WebP, GIF — plusieurs fichiers acceptés
+            JPG, PNG, WebP, GIF, HEIC — plusieurs fichiers acceptés
           </p>
         </div>
 

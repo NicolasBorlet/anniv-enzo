@@ -1,9 +1,10 @@
 "use client";
 
 import Image from "next/image";
-import { Download, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { Download, ImageOff, Trash2 } from "lucide-react";
+import { useDisplayableImageUrl } from "@/lib/hooks/use-displayable-image-url";
 import type { GalleryImage } from "@/lib/types";
+import { useState } from "react";
 
 type ImageCardProps = {
   image: GalleryImage;
@@ -24,12 +25,31 @@ export function ImageCard({
   isSuperAdmin = false,
   isDeleting = false,
 }: ImageCardProps) {
-  const [loaded, setLoaded] = useState(false);
+  const { src, isConverting, hasError, unoptimized } =
+    useDisplayableImageUrl(image);
+  const [loadError, setLoadError] = useState(false);
+  const showPlaceholder = isConverting || hasError || loadError || !src;
 
   return (
     <div className="group relative aspect-square w-full overflow-hidden rounded-xl border border-border/60 bg-muted shadow-[0_2px_16px_var(--glow-primary)] transition-all duration-300 hover:-translate-y-1 hover:border-accent/40 hover:shadow-[0_8px_32px_var(--glow-primary),0_0_20px_var(--glow-gold)] motion-reduce:hover:translate-y-0">
-      {!loaded && (
-        <div className="absolute inset-0 shimmer-surface" aria-hidden="true" />
+      {showPlaceholder && (
+        <div
+          className={`absolute inset-0 flex flex-col items-center justify-center gap-2 px-3 text-center ${
+            isConverting ? "shimmer-surface" : "bg-muted"
+          }`}
+          aria-hidden={isConverting}
+        >
+          {!isConverting && (
+            <>
+              <ImageOff className="h-8 w-8 text-muted-foreground/70" />
+              <p className="text-xs text-muted-foreground">
+                {hasError || loadError
+                  ? "Aperçu indisponible"
+                  : "Chargement de l'aperçu…"}
+              </p>
+            </>
+          )}
+        </div>
       )}
 
       <button
@@ -38,16 +58,19 @@ export function ImageCard({
         className="absolute inset-0 z-0 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
         aria-label={`Ouvrir ${image.name}`}
       >
-        <Image
-          src={image.url}
-          alt={image.name}
-          fill
-          sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-          className={`object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100 ${
-            loaded ? "opacity-100" : "opacity-0"
-          }`}
-          onLoad={() => setLoaded(true)}
-        />
+        {src && (
+          <Image
+            src={src}
+            alt={image.name}
+            fill
+            unoptimized={unoptimized}
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            className={`object-cover transition-transform duration-300 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100 ${
+              showPlaceholder ? "opacity-0" : "opacity-100"
+            }`}
+            onError={() => setLoadError(true)}
+          />
+        )}
       </button>
 
       <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/50 to-transparent p-3 opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 motion-reduce:transition-none">

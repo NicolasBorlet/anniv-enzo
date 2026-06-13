@@ -6,6 +6,7 @@ import {
   getMetadata,
   type StorageReference,
 } from "firebase/storage";
+import { normalizeImageFileForUpload } from "@/lib/client/normalize-image-upload";
 import { getIdToken } from "./auth";
 import { getFirebaseStorage } from "./client";
 import {
@@ -95,16 +96,18 @@ export async function uploadImage(
   folder: StorageFolder,
   file: File,
 ): Promise<GalleryImage> {
+  const normalizedFile = await normalizeImageFileForUpload(file);
+
   if (folder === "gallery") {
-    return uploadGalleryImage(file);
+    return uploadGalleryImage(normalizedFile);
   }
 
   const storage = getFirebaseStorage();
-  const safeName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+  const safeName = `${Date.now()}-${normalizedFile.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
   const fileRef = ref(storage, `${folder}/${safeName}`);
 
-  const snapshot = await uploadBytes(fileRef, file, {
-    contentType: file.type,
+  const snapshot = await uploadBytes(fileRef, normalizedFile, {
+    contentType: normalizedFile.type,
   });
 
   const [url, metadata] = await Promise.all([
