@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
-import { Cormorant_Infant, Great_Vibes, Playfair_Display } from "next/font/google";
 import { AuthProvider } from "@/components/auth/auth-provider";
 import { SparkleField } from "@/components/magic/sparkle-field";
+import { Analytics } from "@vercel/analytics/next";
+import type { Metadata } from "next";
+import { Cormorant_Infant, Great_Vibes, Playfair_Display } from "next/font/google";
 import "./globals.css";
 
 const playfairDisplay = Playfair_Display({
@@ -47,6 +48,7 @@ export default function RootLayout({
       lang="fr"
       className={`${playfairDisplay.variable} ${cormorantInfant.variable} ${greatVibes.variable} h-full antialiased`}
     >
+      <Analytics />
       <body className="relative flex min-h-full flex-col">
         <SparkleField />
         <a

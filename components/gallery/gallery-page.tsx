@@ -99,10 +99,7 @@ export function GalleryPage({
 
     try {
       const allImages = await loadAllForDownload();
-      await downloadAllImages(
-        allImages,
-        config.title.toLowerCase().replace(/\s+/g, "-"),
-      );
+      await downloadAllImages(allImages);
     } catch {
       setError("Impossible de télécharger toutes les photos.");
     } finally {

@@ -1,4 +1,3 @@
-import JSZip from "jszip";
 import { getBytes, ref } from "firebase/storage";
 import { getFirebaseStorage } from "./firebase/client";
 import { isHeicImage, toJpegFilename } from "./image-formats";
@@ -70,9 +69,37 @@ async function prepareShareableImage(
   return { blob, filename };
 }
 
-async function saveBlob(blob: Blob, filename: string): Promise<void> {
+function dedupeFilenames(
+  items: { blob: Blob; filename: string }[],
+): { blob: Blob; filename: string }[] {
+  const usedNames = new Set<string>();
+
+  return items.map((item) => {
+    let filename = item.filename;
+
+    if (usedNames.has(filename)) {
+      const dotIndex = filename.lastIndexOf(".");
+      const base = dotIndex > 0 ? filename.slice(0, dotIndex) : filename;
+      const ext = dotIndex > 0 ? filename.slice(dotIndex) : "";
+      let counter = 2;
+      while (usedNames.has(`${base}-${counter}${ext}`)) {
+        counter += 1;
+      }
+      filename = `${base}-${counter}${ext}`;
+    }
+
+    usedNames.add(filename);
+    return { blob: item.blob, filename };
+  });
+}
+
+function toShareableFile(blob: Blob, filename: string): File {
   const mimeType = blob.type || mimeTypeFromFilename(filename);
-  const file = new File([blob], filename, { type: mimeType });
+  return new File([blob], filename, { type: mimeType });
+}
+
+async function saveBlob(blob: Blob, filename: string): Promise<void> {
+  const file = toShareableFile(blob, filename);
 
   if (
     typeof navigator.share === "function" &&
@@ -92,6 +119,34 @@ async function saveBlob(blob: Blob, filename: string): Promise<void> {
   triggerBlobDownload(blob, filename);
 }
 
+async function saveAllBlobs(
+  items: { blob: Blob; filename: string }[],
+): Promise<void> {
+  const files = items.map(({ blob, filename }) =>
+    toShareableFile(blob, filename),
+  );
+
+  if (
+    files.length > 1 &&
+    typeof navigator.share === "function" &&
+    typeof navigator.canShare === "function" &&
+    navigator.canShare({ files })
+  ) {
+    try {
+      await navigator.share({ files, title: "Photos" });
+      return;
+    } catch (error) {
+      if (error instanceof Error && error.name === "AbortError") {
+        return;
+      }
+    }
+  }
+
+  for (const { blob, filename } of items) {
+    await saveBlob(blob, filename);
+  }
+}
+
 export async function downloadImage(image: GalleryImage): Promise<void> {
   try {
     const { blob, filename } = await prepareShareableImage(image);
@@ -103,34 +158,27 @@ export async function downloadImage(image: GalleryImage): Promise<void> {
 
 export async function downloadAllImages(
   images: GalleryImage[],
-  archiveName: string,
 ): Promise<void> {
   if (images.length === 0) return;
 
-  const zip = new JSZip();
-  const usedNames = new Set<string>();
+  if (images.length === 1) {
+    await downloadImage(images[0]);
+    return;
+  }
 
-  await Promise.all(
-    images.map(async (image) => {
-      const blob = await fetchImageBlob(image);
-      let filename = image.name;
-
-      if (usedNames.has(filename)) {
-        const dotIndex = filename.lastIndexOf(".");
-        const base = dotIndex > 0 ? filename.slice(0, dotIndex) : filename;
-        const ext = dotIndex > 0 ? filename.slice(dotIndex) : "";
-        let counter = 2;
-        while (usedNames.has(`${base}-${counter}${ext}`)) {
-          counter += 1;
-        }
-        filename = `${base}-${counter}${ext}`;
-      }
-
-      usedNames.add(filename);
-      zip.file(filename, blob);
-    }),
+  const prepared = dedupeFilenames(
+    await Promise.all(images.map(prepareShareableImage)),
   );
 
-  const zipBlob = await zip.generateAsync({ type: "blob" });
-  await saveBlob(zipBlob, `${archiveName}.zip`);
+  try {
+    await saveAllBlobs(prepared);
+  } catch {
+    for (const image of images) {
+      try {
+        await downloadImage(image);
+      } catch {
+        triggerUrlDownload(image);
+      }
+    }
+  }
 }
