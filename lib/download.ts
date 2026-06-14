@@ -3,6 +3,31 @@ import { getFirebaseStorage } from "./firebase/client";
 import { isHeicImage, toJpegFilename } from "./image-formats";
 import type { GalleryImage } from "./types";
 
+const BULK_FILE_DOWNLOAD_DELAY_MS = 300;
+
+function isMobileDevice(): boolean {
+  if (typeof window === "undefined") return false;
+
+  const ua = navigator.userAgent;
+
+  if (/Android|iPhone|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(ua)) {
+    return true;
+  }
+
+  // iPad, including iPadOS reporting as Mac.
+  if (/iPad/i.test(ua)) {
+    return true;
+  }
+
+  return navigator.maxTouchPoints > 1 && /Macintosh/i.test(ua);
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms);
+  });
+}
+
 function mimeTypeFromFilename(filename: string): string {
   const ext = filename.split(".").pop()?.toLowerCase();
   const map: Record<string, string> = {
@@ -99,6 +124,11 @@ function toShareableFile(blob: Blob, filename: string): File {
 }
 
 async function saveBlob(blob: Blob, filename: string): Promise<void> {
+  if (!isMobileDevice()) {
+    triggerBlobDownload(blob, filename);
+    return;
+  }
+
   const file = toShareableFile(blob, filename);
 
   if (
@@ -122,6 +152,17 @@ async function saveBlob(blob: Blob, filename: string): Promise<void> {
 async function saveAllBlobs(
   items: { blob: Blob; filename: string }[],
 ): Promise<void> {
+  if (!isMobileDevice()) {
+    for (let index = 0; index < items.length; index += 1) {
+      const { blob, filename } = items[index];
+      triggerBlobDownload(blob, filename);
+      if (index < items.length - 1) {
+        await delay(BULK_FILE_DOWNLOAD_DELAY_MS);
+      }
+    }
+    return;
+  }
+
   const files = items.map(({ blob, filename }) =>
     toShareableFile(blob, filename),
   );
